@@ -1,3 +1,5 @@
 **/.DS_Store
 **/.vscode
 hw1_pytorch_tutorial/src/data
+**/mujoco
+**/.venv
