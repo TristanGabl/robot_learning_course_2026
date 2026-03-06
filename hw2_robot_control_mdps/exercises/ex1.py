@@ -97,7 +97,7 @@ def ik_track(model, data, site_name, target_pos,
         mujoco.mj_comPos(model, data)
 
         # TODO: compute end-effector position error
-        err_pos = target_pos - data.qpos[:3]
+        err_pos = target_pos - data.site(site_name).xpos
         err_pos = np.concatenate((err_pos, np.array([0.0] * 3)))
         # print(err_pos)
 
@@ -120,12 +120,30 @@ def ik_track(model, data, site_name, target_pos,
         
         
         qdot = J.transpose() @ np.linalg.solve(J @ J.transpose() + damping * np.eye(len(J)), err_pos)
+        
+        # # Little experiment: use nullspace of task 1 to have joint 2 (0 indexing) stay in positive realm, don't like how it clips itself
+        # k_gain = 1.5 
+        # qdot_secondary = np.zeros(num_joints)
+        # lower_limit = np.pi/4
+        # if data.qpos[2] < lower_limit: # only care about lower limit
+        #     qdot_secondary[2] = k_gain * (lower_limit - data.qpos[2])
+        # if data.qpos[3] < lower_limit: # only care about lower limit
+        #     qdot_secondary[3] = k_gain * (lower_limit - data.qpos[3])
+
+        
+        # # nullspace of J
+        # I = np.eye(num_joints)
+        # J_inv = J.T @ np.linalg.solve(J @ J.transpose() + damping * np.eye(len(J)), np.eye(len(J)))
+        # null_space_projection = I - (J_inv @ J)
+
+        # # joint movement through nullspace
+        # qdot += (null_space_projection @ qdot_secondary)
 
         # optional clamp to avoid overshoot
         qdot = np.clip(qdot, -2.0, 2.0)
 
-        print()
-        print(qdot)
+        # print()
+        # print(qdot)
 
         # Update the joint configuration (qpos) using the output from the Damped Least Squares method
         data.qvel[:] = 0.0
