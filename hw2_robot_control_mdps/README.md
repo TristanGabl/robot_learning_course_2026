@@ -35,10 +35,10 @@ python scripts/inverse_kinematics.py
 Note that the tracking is done by purely teleporting the joint positions to the output from IK; there is still no control involved.
 
 ### Theoretical questions
-1. If you increase the width of the Lemniscate (increasing a), what issue can happen with the robot performing IK?
-2. What can happen if you change the dt parameter in IK?
-3. We implemented a simple numerical IK solver. What are the advantages and disadvantages compared to an analytical IK solver?
-4. What are the limits of our IK solver compared to state-of-the-art IK solvers?
+1. If you increase the width of the Lemniscate (increasing a), what issue can happen with the robot performing IK? _the keypoints will be unreachable for the robot and it will freeze in position since it cannot accept the solution of the waypoint being unreachable_
+2. What can happen if you change the dt parameter in IK? _it changes how large the updates steps are and when tuned correct (from dt=0.1 to ~dt=1) and can decrease and will decrease the number of steps for keypoint convergence (until step is too large it it never converges, with step ~dt=10)_
+3. We implemented a simple numerical IK solver. What are the advantages and disadvantages compared to an analytical IK solver? _advantages: one algorithm for any configuration, easy to incoperate extra tasks using nullspace of jaccobian, can add damping to handle singularities. Disadvantages: is simple but requires many iterations, compared to instantaneous analytic solution, will also only provide a valid solution new the starting state_
+4. What are the limits of our IK solver compared to state-of-the-art IK solvers? _to guarantee staying in joint limits, we need to use clamping (can result in error), state-of-the-art uses mathematical guarantees to stay within limits. Our simple version works for this example, but with a more complex one with strong local minimum we might not converge to optimal solution, state-of-the-art uses multiple restarts to achieve a much higher probability to find global minimum solution_
 
 The theoretical questions require only short and direct answers. Each question is expected to have a 1-sentence answer.
 
@@ -127,9 +127,9 @@ A viewer window should pop up showing the robot smoothly moving between several 
 ### Theoretical questions
 To get a feeling for the choice of the PID gains, you will analyze how their choice influences the behavior of the waypoint tracking. 
 Test different settings of the gains to be able to answer the following:
-1. If you keep increasing $K_P$, what issue arises when tracking the waypoints?
-2. How does $K_D$ mitigate the effect you saw above when increasing $K_P$?
-3. In what scenarios is a non-zero $K_I$ needed for the controller to perform well?
+1. If you keep increasing $K_P$, what issue arises when tracking the waypoints? _to some degree it makes the arm reach keypoints faster, at some point causing it to overshoot and not converge_
+2. How does $K_D$ mitigate the effect you saw above when increasing $K_P$? _generally, Kd would cause the convergence to carefully slow down towards the keypoint, making it more stable to overshoot at the cost of lower convergence, however our example here works up to large Kp quite well, making the combination with kd only partially effective_
+3. In what scenarios is a non-zero $K_I$ needed for the controller to perform well? _Ki is used to mitigate steady-state error which is often caused by external forces such as gravity, the error is hard to visually judge since it usually makes out a tiny offset of the final robot position to the target keypoint_
 
 There is no need to show these behavior changes in the video and you can just write down your answers in the video. Or say them out loud.
 The theoretical questions require only short and direct answers. Each question is expected to have a 1-sentence answer.

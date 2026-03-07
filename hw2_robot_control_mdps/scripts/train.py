@@ -31,7 +31,7 @@ if __name__ == "__main__":
 
     if args.num_envs > 1:
         # Wrap in a vectorized environment for parallel simulation
-        start_method = "spawn" if sys.platform == "win32" else "forkserver"
+        start_method = "spawn"
         envs = SubprocVecEnv([make_env() for _ in range(args.num_envs)], start_method=start_method)
         envs = VecMonitor(envs)
         print(f"Successfully launched {args.num_envs} environments!")
