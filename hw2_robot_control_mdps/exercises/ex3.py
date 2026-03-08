@@ -21,7 +21,7 @@ def reset_robot(default_qpos: np.ndarray) -> np.ndarray:
     Returns:
     - reset_qpos: np.ndarray. The joint positions to reset the robot to. Dimensionality: 1D array, Shape: (num_joints,).
     """
-    return default_qpos * np.random.uniform(-0.5, 0.5, len(default_qpos))
+    return default_qpos + np.random.uniform(-0.5, 0.5, len(default_qpos))
     
 
 
@@ -42,8 +42,7 @@ def reset_target_position(base_pos: np.ndarray) -> np.ndarray:
     dx_rand = np.random.uniform(0.2, 0.4)
     dy_rand = np.random.uniform(-0.2, 0.2)
     dz_rand = np.random.uniform(0.1, 0.4)
-    base_pos += np.array([dx_rand, dy_rand, dz_rand])
-    return base_pos
+    return base_pos + np.array([dx_rand, dy_rand, dz_rand])
 
 
 def process_action(action: np.ndarray, jnt_range: np.ndarray) -> np.ndarray:
@@ -61,7 +60,7 @@ def process_action(action: np.ndarray, jnt_range: np.ndarray) -> np.ndarray:
     Returns:
     - target_qpos: np.ndarray. Target joint positions to apply as control. Dimensionality: 1D array, Shape: (num_joints,).
     """
-    percent = 1 + action / 2
+    percent = (1 + action) / 2
     return jnt_range[:, 0] +  (jnt_range[:, 1] - jnt_range[:, 0]) * percent  
 
 
@@ -118,13 +117,13 @@ def get_obs(qpos: np.ndarray, ee_pos_w: np.ndarray, ee_rot_w: np.ndarray, base_p
     Hints: You can use the provided functions quat_mul, quat_conjugate, quat_normalize, rot_mat_to_quat for quaternion operations.
     """
 
-    ee_pos_base = ee_pos_w - base_pos_w
+    ee_pos_base =  base_rot_w @ (ee_pos_w - base_pos_w)
 
     base_quad_w = rot_mat_to_quat(base_rot_w)
     ee_quad_w = rot_mat_to_quat(ee_rot_w)
-    ee_quat_base = quat_normalize(quat_mul(base_quad_w,quat_mul(ee_quad_w, quat_conjugate(base_quad_w))))
+    ee_quat_base = quat_normalize(quat_mul(quat_conjugate(base_quad_w), ee_quad_w))
 
-    target_pos_base  = target_pos_w - base_pos_w
+    target_pos_base  = base_rot_w @ (target_pos_w - base_pos_w)
 
     obs = np.concatenate([
         qpos,
