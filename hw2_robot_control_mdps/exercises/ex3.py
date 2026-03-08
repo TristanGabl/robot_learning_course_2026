@@ -24,6 +24,25 @@ def reset_robot(default_qpos: np.ndarray) -> np.ndarray:
     return default_qpos + np.random.uniform(-0.5, 0.5, len(default_qpos))
     
 
+def get_lemniscate_keypoint(t, a=0.2):
+    """
+    TODO:
+    Generate a set of keypoints using Lemniscate of Bernoulli (infinity sign) in the Y-Z plane.
+        The formula is: y = a * cos(t) / (1 + sin(t)^2)
+                        z = a * cos(t) * sin(t) / (1 + sin(t)^2)
+    For interest, you can learn about Lemniscate of Bernoulli on wikipedia: https://en.wikipedia.org/wiki/Lemniscate_of_Bernoulli
+    
+    Args:
+        t (float or np.ndarray): Time scales from 0 to 2π to generate keypoints.
+        a (float): Scaling factor for the size of the lemniscate.
+        
+    Returns:
+        y (float or np.ndarray): y coordinates of the keypoint on the lemniscate.
+        z (float or np.ndarray): z coordinates of the keypoint on the lemniscate.
+    """
+    y = a * np.cos(t) / (1 + np.pow(np.sin(t), 2))
+    z = a * np.cos(t) * np.sin(t) / (1 + np.pow(np.sin(t),2 ))
+    return y, z
 
 def reset_target_position(base_pos: np.ndarray) -> np.ndarray:
     """
@@ -39,11 +58,14 @@ def reset_target_position(base_pos: np.ndarray) -> np.ndarray:
     Returns:
     - target_pos: np.ndarray. The 3D position of the target relative to the base. Dimensionality: 1D array, Shape: (3,).
     """
-    dx_rand = np.random.uniform(0.2, 0.4)
-    dy_rand = np.random.uniform(-0.2, 0.2)
-    dz_rand = np.random.uniform(0.1, 0.4)
-    return base_pos + np.array([dx_rand, dy_rand, dz_rand])
-
+    # dx_rand = np.random.uniform(0.2, 0.4)
+    # dy_rand = np.random.uniform(-0.2, 0.2)
+    # dz_rand = np.random.uniform(0.1, 0.4)
+    # return base_pos + np.array([dx_rand, dy_rand, dz_rand])
+    x_offset=0.3
+    z_offset=0.25
+    y, z = get_lemniscate_keypoint(np.random.uniform(0, 2 * np.pi))
+    return np.array([x_offset, y, z + z_offset])
 
 def process_action(action: np.ndarray, jnt_range: np.ndarray) -> np.ndarray:
     """
@@ -84,12 +106,12 @@ def compute_reward(ee_tracking_error: float) -> float:
     Returns:
     - reward: float. The computed reward based on the tracking error. Dimensionality: scalar
     """
-    dense_reward = np.exp(-2 * ee_tracking_error)
+    dense_reward = np.exp(-5 * ee_tracking_error) # form reward to be more strict
     sparse_reward = 1.0 if ee_tracking_error < 0.005 else 0.0
     return dense_reward + sparse_reward
     
 
-
+# prev_target_base = np.array([0,0,0])
 def get_obs(qpos: np.ndarray, ee_pos_w: np.ndarray, ee_rot_w: np.ndarray, base_pos_w: np.ndarray, base_rot_w: np.ndarray, target_pos_w: np.ndarray) -> np.ndarray:
     """
     TODO: Extract the observation vector from the environment robot state variables. 
@@ -125,12 +147,16 @@ def get_obs(qpos: np.ndarray, ee_pos_w: np.ndarray, ee_rot_w: np.ndarray, base_p
 
     target_pos_base  = base_rot_w @ (target_pos_w - base_pos_w)
 
+    # target_delta = target_pos_base - prev_target_base # extra info for bonus
+
     obs = np.concatenate([
         qpos,
         ee_pos_base,
         ee_quat_base,
-        target_pos_base
+        target_pos_base,
+        # target_delta # change from previous to current target pos
     ])
+    # print(target_delta)
     if np.any(obs == np.nan):
         raise ValueError("found nans")
     return obs 
