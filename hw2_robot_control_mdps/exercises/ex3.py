@@ -90,7 +90,7 @@ def compute_reward(ee_tracking_error: float) -> float:
     
 
 
-def get_obs(qpos: np.ndarray, ee_pos_w: np.ndarray, ee_rot_w: np.ndarray, base_pos_w: np.ndarray, base_rot_w: np.ndarray, target_pos_w: np.ndarray) -> np.ndarray:
+def get_obs(qpos: np.ndarray, ee_pos_w: np.ndarray, ee_rot_w: np.ndarray, base_pos_w: np.ndarray, base_rot_w: np.ndarray, target_pos_w: np.ndarray, target_vel_w: np.ndarray) -> np.ndarray:
     """
     TODO: Extract the observation vector from the environment robot state variables. 
 
@@ -125,11 +125,14 @@ def get_obs(qpos: np.ndarray, ee_pos_w: np.ndarray, ee_rot_w: np.ndarray, base_p
 
     target_pos_base  = base_rot_w @ (target_pos_w - base_pos_w)
 
+    target_vel_base = base_rot_w @ target_vel_w
+
     obs = np.concatenate([
         qpos,
         ee_pos_base,
         ee_quat_base,
-        target_pos_base
+        target_pos_base,
+        target_vel_base
     ])
     if np.any(obs == np.nan):
         raise ValueError("found nans")
