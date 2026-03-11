@@ -49,17 +49,15 @@ class SO100TrackEnv(gym.Env):
         
     # bonus
     def get_trajectory(self, t=100, turns=5):
-        # Circular trajectory offset from the robot base, rotatable around z-axis
-        dist = np.random.uniform(0.22, 0.27)       # radial distance from base in XY
-        dy   = np.random.uniform(-0.1, 0.1)       # lateral (tangential) offset, breaks symmetry
-        phi = np.random.uniform(-np.pi, np.pi)    # phase offset along the circle
-        psi = np.random.uniform(-np.pi * 0.4, np.pi * 0.4)    # rotation of the whole circle around robot z-axis
-        r = np.random.uniform(0.1, 0.2)         # circle radius
-        # dz = center height above base; ensure lowest point (cz - r) is at least 0.15m above base
+        # random variables
+        dist = np.random.uniform(0.22, 0.27)       
+        dy   = np.random.uniform(-0.1, 0.1)       
+        phi = np.random.uniform(-np.pi, np.pi)    
+        psi = np.random.uniform(-np.pi * 0.4, np.pi * 0.4) # cannot rotate 360, keeping the targets in front of the robot
+        r = np.random.uniform(0.1, 0.2)         
         dz = r + np.random.uniform(0.1, 0.15)
 
         base_pos = self.data.body("Base").xpos.copy()
-        # center of circle: radial offset (dist) + tangential offset (dy), both rotated by psi
         cx = base_pos[0] + dist * np.cos(psi) - dy * np.sin(psi)
         cy = base_pos[1] + dist * np.sin(psi) + dy * np.cos(psi)
         cz = base_pos[2] + dz
