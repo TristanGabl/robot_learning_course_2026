@@ -9,7 +9,7 @@ from env.so100_tracking_env import SO100TrackEnv
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Train PPO on SO100 tracking")
-    parser.add_argument("--num_envs", type=int, default=16,
+    parser.add_argument("--num_envs", type=int, default=1,
                         help="Number of parallel environments; set 1 for single process")
     parser.add_argument("--max_iterations", type=int, default=500,
                         help="Number of PPO update iterations")
@@ -17,6 +17,10 @@ def parse_args():
                         help="Checkpoint every N update iterations")
     parser.add_argument("--device", type=str, default="cpu",
                         help="Torch device (cpu or cuda)")
+    parser.add_argument("--load_run", type=str, default=None,
+                        help="Run ID to resume from (e.g. '1')")
+    parser.add_argument("--checkpoint", type=str, default=None,
+                        help="Checkpoint to load (e.g. '500')")
     return parser.parse_args()
 
 def make_env():
@@ -35,22 +39,20 @@ if __name__ == "__main__":
         envs = SubprocVecEnv([make_env() for _ in range(args.num_envs)], start_method=start_method)
         envs = VecMonitor(envs)
         print(f"Successfully launched {args.num_envs} environments!")
-        model = PPO(
-            "MlpPolicy",
-            envs,
-            device=args.device,
-            verbose=1,
-            tensorboard_log=EXP_DIR,
-            gamma=0.99,
-            ent_coef=0.001,
-            vf_coef=1.0
-        )
+        vec_env = envs
     else:
         # Create a single environment for debug with rendering
-        env = SO100TrackEnv(xml_path=XML_PATH, render_mode="human")
+        vec_env = SO100TrackEnv(xml_path=XML_PATH, render_mode="human")
+
+    if args.load_run is not None and args.checkpoint is not None:
+        policy_path = EXP_DIR / f"so100_tracking_{args.load_run}" / f"model_{args.checkpoint}.zip"
+        print(f"Resuming from {policy_path}...")
+        model = PPO.load(policy_path, env=vec_env, device=args.device,
+                         tensorboard_log=EXP_DIR)
+    else:
         model = PPO(
             "MlpPolicy",
-            env,
+            vec_env,
             device=args.device,
             verbose=1,
             tensorboard_log=EXP_DIR,

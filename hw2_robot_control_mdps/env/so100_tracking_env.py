@@ -12,7 +12,7 @@ class SO100TrackEnv(gym.Env):
     xml_path: Path
     metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 30}
 
-    def __init__(self, xml_path: Path, render_mode=None, real_time=False):
+    def __init__(self, xml_path: Path, render_mode=None, real_time=True):
         self.xml_path = xml_path
         self.model = mujoco.MjModel.from_xml_path(str(self.xml_path))
         self.data = mujoco.MjData(self.model)
@@ -48,15 +48,15 @@ class SO100TrackEnv(gym.Env):
 
         
     # bonus
-    def get_trajectory(self, t=100):
+    def get_trajectory(self, t=100, turns=5):
         # Circular trajectory offset from the robot base, rotatable around z-axis
-        dist = np.random.uniform(0.25, 0.3)       # radial distance from base in XY
+        dist = np.random.uniform(0.22, 0.27)       # radial distance from base in XY
         dy   = np.random.uniform(-0.1, 0.1)       # lateral (tangential) offset, breaks symmetry
         phi = np.random.uniform(-np.pi, np.pi)    # phase offset along the circle
-        psi = np.random.uniform(-np.pi, np.pi)    # rotation of the whole circle around robot z-axis
-        r = np.random.uniform(0.05, 0.15)         # circle radius
+        psi = np.random.uniform(-np.pi * 0.4, np.pi * 0.4)    # rotation of the whole circle around robot z-axis
+        r = np.random.uniform(0.1, 0.2)         # circle radius
         # dz = center height above base; ensure lowest point (cz - r) is at least 0.15m above base
-        dz = r + np.random.uniform(0.15, 0.20)
+        dz = r + np.random.uniform(0.1, 0.15)
 
         base_pos = self.data.body("Base").xpos.copy()
         # center of circle: radial offset (dist) + tangential offset (dy), both rotated by psi
@@ -67,8 +67,8 @@ class SO100TrackEnv(gym.Env):
 
         steps = np.arange(t)
         # circle lies in the plane perpendicular to the XY radial direction
-        local_y = r * np.cos(omega * steps + phi)  # tangential (in XY plane)
-        local_z = r * np.sin(omega * steps + phi)  # vertical
+        local_y = r * np.cos(omega * steps * turns + phi)  # tangential (in XY plane)
+        local_z = r * np.sin(omega * steps * turns + phi)  # vertical
         xs = cx - local_y * np.sin(psi)
         ys = cy + local_y * np.cos(psi)
         zs = cz + local_z
