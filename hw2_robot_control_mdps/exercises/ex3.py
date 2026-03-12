@@ -117,13 +117,13 @@ def get_obs(qpos: np.ndarray, ee_pos_w: np.ndarray, ee_rot_w: np.ndarray, base_p
     Hints: You can use the provided functions quat_mul, quat_conjugate, quat_normalize, rot_mat_to_quat for quaternion operations.
     """
 
-    ee_pos_base =  base_rot_w @ (ee_pos_w - base_pos_w)
+    ee_pos_base =  base_rot_w.T @ (ee_pos_w - base_pos_w) # base_rot_w only rotates from base to world
 
     base_quad_w = rot_mat_to_quat(base_rot_w)
     ee_quad_w = rot_mat_to_quat(ee_rot_w)
     ee_quat_base = quat_normalize(quat_mul(quat_conjugate(base_quad_w), ee_quad_w))
 
-    target_pos_base  = base_rot_w @ (target_pos_w - base_pos_w)
+    target_pos_base  = base_rot_w.T @ (target_pos_w - base_pos_w)
 
     obs = np.concatenate([
         qpos,
@@ -131,6 +131,6 @@ def get_obs(qpos: np.ndarray, ee_pos_w: np.ndarray, ee_rot_w: np.ndarray, base_p
         ee_quat_base,
         target_pos_base
     ])
-    if np.any(obs == np.nan):
-        raise ValueError("found nans")
+    # if np.any(obs == np.nan):
+    #     raise ValueError("found nans")
     return obs 
