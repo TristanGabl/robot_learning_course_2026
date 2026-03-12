@@ -39,9 +39,9 @@ def reset_target_position(base_pos: np.ndarray) -> np.ndarray:
     Returns:
     - target_pos: np.ndarray. The 3D position of the target relative to the base. Dimensionality: 1D array, Shape: (3,).
     """
-    dx_rand = np.random.uniform(0.2, 0.4)
+    dx_rand = np.random.uniform(0.2, 0.3) # keep closer to robot
     dy_rand = np.random.uniform(-0.2, 0.2)
-    dz_rand = np.random.uniform(0.1, 0.4)
+    dz_rand = np.random.uniform(0.1, 0.3) # keep closer to robot
     return base_pos + np.array([dx_rand, dy_rand, dz_rand])
 
 
@@ -84,7 +84,7 @@ def compute_reward(ee_tracking_error: float) -> float:
     Returns:
     - reward: float. The computed reward based on the tracking error. Dimensionality: scalar
     """
-    dense_reward = np.exp(-2 * ee_tracking_error)
+    dense_reward = np.exp(-5 * ee_tracking_error) # Bonus
     sparse_reward = 1.0 if ee_tracking_error < 0.005 else 0.0
     return dense_reward + sparse_reward
     
@@ -125,11 +125,14 @@ def get_obs(qpos: np.ndarray, ee_pos_w: np.ndarray, ee_rot_w: np.ndarray, base_p
 
     target_pos_base  = base_rot_w.T @ (target_pos_w - base_pos_w)
 
+    ee_to_target = target_pos_base - ee_pos_base # Bonus
+
     obs = np.concatenate([
         qpos,
         ee_pos_base,
         ee_quat_base,
-        target_pos_base
+        target_pos_base,
+        ee_to_target,
     ])
     # if np.any(obs == np.nan):
     #     raise ValueError("found nans")
