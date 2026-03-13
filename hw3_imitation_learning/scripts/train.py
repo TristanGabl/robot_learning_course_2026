@@ -29,8 +29,8 @@ from torch.utils.data import DataLoader, random_split
 
 # TODO: Choose your own hyperparameters!
 EPOCHS = 500
-BATCH_SIZE = 8
-LR = 1e-3
+BATCH_SIZE = 64
+LR = 1e-4
 VAL_SPLIT = 0.1
 
 
@@ -189,7 +189,7 @@ def main() -> None:
 
     # TODO: implement an optimizer and scheduler
     optimizer = torch.optim.Adam(model.parameters(), lr=LR)
-    scheduler = torch.optim.lr_scheduler.StepLR(optimizer=optimizer, step_size=100, gamma=0.75)
+    scheduler = torch.optim.lr_scheduler.StepLR(optimizer=optimizer, step_size=100, gamma=0.5)
 
     # ── training loop ─────────────────────────────────────────────────
     best_val = float("inf")
