@@ -84,7 +84,7 @@ def compute_reward(ee_tracking_error: float) -> float:
     Returns:
     - reward: float. The computed reward based on the tracking error. Dimensionality: scalar
     """
-    dense_reward = np.exp(-5 * ee_tracking_error) # Bonus
+    dense_reward = np.exp(-2 * ee_tracking_error) # Bonus
     sparse_reward = 1.0 if ee_tracking_error < 0.005 else 0.0
     return dense_reward + sparse_reward
     
@@ -125,14 +125,14 @@ def get_obs(qpos: np.ndarray, ee_pos_w: np.ndarray, ee_rot_w: np.ndarray, base_p
 
     target_pos_base  = base_rot_w.T @ (target_pos_w - base_pos_w)
 
-    ee_to_target = target_pos_base - ee_pos_base # Bonus
+    # ee_to_target = target_pos_base - ee_pos_base # Bonus
 
     obs = np.concatenate([
         qpos,
         ee_pos_base,
         ee_quat_base,
         target_pos_base,
-        ee_to_target,
+        # ee_to_target,
     ])
     # if np.any(obs == np.nan):
     #     raise ValueError("found nans")
