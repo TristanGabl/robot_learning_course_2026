@@ -118,7 +118,7 @@ def build_policy(
     state_dim: int,
     action_dim: int,
     chunk_size: int,
-    d_model: int = 256,
+    d_model: int = 128,
     depth: int = 2
 ) -> BasePolicy:
     if policy_type == "obstacle":
