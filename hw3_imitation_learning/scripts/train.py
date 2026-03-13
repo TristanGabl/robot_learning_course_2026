@@ -28,9 +28,9 @@ from hw3.model import BasePolicy, build_policy
 from torch.utils.data import DataLoader, random_split
 
 # TODO: Choose your own hyperparameters!
-EPOCHS = ... 
-BATCH_SIZE = ...
-LR = ...
+EPOCHS = 500
+BATCH_SIZE = 8
+LR = 1e-3
 VAL_SPLIT = 0.1
 
 
@@ -49,6 +49,17 @@ def train_one_epoch(
         # TODO: Implement the training step for one batch here.
         # This mostly: Get states and action_chunks onto the correct device, compute the loss, and step the optimizer.
 
+        states = states.to(device)
+        action_chunks = action_chunks.to(device)
+        loss = model.compute_loss(state=states, action_chunk=action_chunks)
+        
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+
+        total_loss += loss.item()
+        n_batches += 1
+        
     return total_loss / max(n_batches, 1)
 
 
@@ -65,6 +76,13 @@ def evaluate(
     for batch in loader:
         states, action_chunks = batch
         # TODO: Implement the evaluation step for one batch here.
+        states = states.to(device)
+        action_chunks = action_chunks.to(device)
+        loss = model.compute_loss(state=states, action_chunk=action_chunks)
+        
+        total_loss += loss.item()
+        n_batches += 1
+
 
     return total_loss / max(n_batches, 1)
 
@@ -75,6 +93,10 @@ def main() -> None:
     parser.add_argument(
         "--zarr", type=Path, required=True, help="Path to processed .zarr store."
     )
+    parser.add_argument(
+        "--extra_zarr", type=Path, nargs="+", required=False, help="Additional .zarr stores to merge."
+    )
+
     parser.add_argument(
         "--policy",
         choices=["obstacle", "multitask"],
@@ -159,15 +181,15 @@ def main() -> None:
         args.policy,
         state_dim=states.shape[1],
         action_dim=actions.shape[1],
-        # TODO: build with your desired specifications
+        chunk_size=args.chunk_size,
     ).to(device)
 
     n_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     print(f"Model parameters: {n_params:,}")
 
     # TODO: implement an optimizer and scheduler
-    # optimizer =
-    # scheduler =
+    optimizer = torch.optim.Adam(model.parameters(), lr=LR)
+    scheduler = torch.optim.lr_scheduler.StepLR(optimizer=optimizer, step_size=100, gamma=0.75)
 
     # ── training loop ─────────────────────────────────────────────────
     best_val = float("inf")
