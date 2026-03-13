@@ -245,6 +245,8 @@ def main() -> None:
                     "state_dim": int(states.shape[1]),
                     "action_dim": int(actions.shape[1]),
                     "val_loss": val_loss,
+                    "d_model": model.d_model,
+                    "depth": model.depth,
                 },
                 save_path,
             )

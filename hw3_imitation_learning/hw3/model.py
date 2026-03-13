@@ -46,15 +46,19 @@ class ObstaclePolicy(BasePolicy):
         action_dim,
         d_model,
         depth,
-        chunk_size
+        chunk_size,
+        dropout: float = 0.1,
     ) -> None:
         super().__init__(state_dim, action_dim, chunk_size)
-        self.input_layer = nn.Sequential(*[nn.Linear(state_dim, d_model), nn.LayerNorm(d_model), nn.ReLU()])
+        self.d_model = d_model
+        self.depth = depth
+        self.input_layer = nn.Sequential(nn.Linear(state_dim, d_model), nn.LayerNorm(d_model), nn.ReLU(), nn.Dropout(dropout))
         layers = []
         for i in range(depth):
-            layers += [nn.Linear(d_model, d_model), 
-                       nn.LayerNorm(d_model), 
-                       nn.ReLU()]
+            layers += [nn.Linear(d_model, d_model),
+                       nn.LayerNorm(d_model),
+                       nn.ReLU(),
+                       nn.Dropout(dropout)]
         self.body = nn.Sequential(*layers)
         self.output_layer = nn.Linear(d_model, chunk_size * action_dim)
 
@@ -118,8 +122,9 @@ def build_policy(
     state_dim: int,
     action_dim: int,
     chunk_size: int,
-    d_model: int = 128,
-    depth: int = 2
+    d_model: int = 256,
+    depth: int = 3,
+    dropout: float = 0.1,
 ) -> BasePolicy:
     if policy_type == "obstacle":
         return ObstaclePolicy(
@@ -127,8 +132,8 @@ def build_policy(
             state_dim=state_dim,
             d_model=d_model,
             depth=depth,
-            chunk_size=chunk_size
-            # TODO: Build with your chosen specifications
+            chunk_size=chunk_size,
+            dropout=dropout,
         )
     if policy_type == "multitask":
         return MultiTaskPolicy(
