@@ -44,9 +44,9 @@ class ObstaclePolicy(BasePolicy):
         self,
         state_dim,
         action_dim,
-        d_model,
-        depth,
         chunk_size,
+        d_model: int = 300,
+        depth: int = 3,
         dropout: float = 0.15,
     ) -> None:
         super().__init__(state_dim, action_dim, chunk_size)
