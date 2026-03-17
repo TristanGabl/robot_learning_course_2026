@@ -93,24 +93,49 @@ class MultiTaskPolicy(BasePolicy):
 
     def __init__(
         self,
+        state_dim,
+        action_dim,
+        chunk_size,
+        d_model: int = 400,
+        depth: int = 3,
+        dropout: float = 0.1,
     ) -> None:
-        super().__init__()
-
-    def compute_loss(
-        self,
-    ) -> torch.Tensor:
-        raise NotImplementedError
-
-    def sample_actions(
-        self,
-    ) -> torch.Tensor:
-        raise NotImplementedError
+        super().__init__(state_dim, action_dim, chunk_size)
+        self.d_model = d_model
+        self.depth = depth
+        self.input_layer = nn.Sequential(nn.Linear(state_dim, d_model), nn.LayerNorm(d_model), nn.ReLU(), nn.Dropout(dropout))
+        layers = []
+        for i in range(depth):
+            layers += [nn.Linear(d_model, d_model),
+                       nn.LayerNorm(d_model),
+                       nn.ReLU(),
+                       nn.Dropout(dropout)]
+        self.body = nn.Sequential(*layers)
+        self.output_layer = nn.Linear(d_model, chunk_size * action_dim)
 
     def forward(
         self,
+        state
     ) -> torch.Tensor:
         """Return predicted action chunk of shape (B, chunk_size, action_dim)."""
-        raise NotImplementedError
+        return self.output_layer(self.body(self.input_layer(state))).reshape(-1, self.chunk_size, self.action_dim)
+
+    def compute_loss(
+        self,
+        state,
+        action_chunk
+    ) -> torch.Tensor:
+        y = action_chunk
+        y_hat = self.forward(state)
+        loss = torch.nn.functional.mse_loss(y_hat, y)
+        return loss
+
+    def sample_actions(
+        self,
+        state: torch.Tensor,
+    ) -> torch.Tensor:
+        return self.forward(state=state)
+
 
 
 PolicyType: TypeAlias = Literal["obstacle", "multitask"]
@@ -139,6 +164,8 @@ def build_policy(
         return MultiTaskPolicy(
             action_dim=action_dim,
             state_dim=state_dim,
-            # TODO: Build with your chosen specifications
+            depth=depth,
+            chunk_size=chunk_size,
+            dropout=dropout,
         )
     raise ValueError(f"Unknown policy type: {policy_type}")
