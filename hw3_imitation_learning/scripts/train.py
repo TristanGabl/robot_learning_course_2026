@@ -14,6 +14,8 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
+import numpy as np
+
 import torch
 import zarr as zarr_lib
 from hw3.dataset import (
@@ -126,6 +128,10 @@ def main() -> None:
         "If omitted, uses the action_key attribute from the zarr metadata.",
     )
     parser.add_argument("--seed", type=int, default=42, help="Random seed.")
+
+    # data augmentation 
+    parser.add_argument("--augmentation", action="store_true", default=False, help="Interchange cube color and coordinates during training.")
+
     args = parser.parse_args()
 
     torch.manual_seed(args.seed)
@@ -150,6 +156,38 @@ def main() -> None:
             state_keys=args.state_keys,
             action_keys=args.action_keys,
         )
+
+
+    # print(f"state shape: {states.shape}")
+    # print(f"state_goal samples:\n{states[:5, -3:]}")
+    
+
+    permutations = np.array([[0, 1, 2], [0, 2, 1], [1, 0, 2], [1, 2, 0], [2, 0, 1], [2, 1, 0]])
+    coordinate_indices = np.array([[4,5], [6,7], [8,9]]) # has to be: red | green | blue : on script/train call we need those correct indices!
+    one_hot_color_indices = np.array([10, 11, 12])
+    permutations_states = np.repeat(states, len(permutations), axis=0)
+    permutations_actions = np.repeat(actions, len(permutations), axis=0)
+    permutations_ep_end = np.concatenate([ep_ends] * 6)
+
+
+    # swap cubes -> coordinates and one hot encoding
+    if args.augmentation:
+        for j in range(permutations.shape[0]):
+            order = permutations[j]
+            perm_offset = j * states.shape[0]
+            permutations_ep_end[j*len(ep_ends):] += states.shape[0]
+
+            for i in range(ep_ends.size):
+                permutations_states[perm_offset:perm_offset+ep_ends[i], [*coordinate_indices[0], *coordinate_indices[1], *coordinate_indices[2], *one_hot_color_indices]] = \
+                    permutations_states[perm_offset:perm_offset+ep_ends[i], [*coordinate_indices[order[0]], *coordinate_indices[order[1]], *coordinate_indices[order[2]], one_hot_color_indices[order[0]], one_hot_color_indices[order[1]], one_hot_color_indices[order[2]]]]
+                
+        permutations_ep_end -= states.shape[0]
+        ep_ends = permutations_ep_end
+        states = permutations_states
+        actions = permutations_actions
+
+
+
     normalizer = Normalizer.from_data(states, actions)
 
     dataset = SO100ChunkDataset(
@@ -159,6 +197,8 @@ def main() -> None:
         chunk_size=args.chunk_size,
         normalizer=normalizer,
     )
+
+    print(f"data augmentation: {args.augmentation}")
     print(f"Dataset: {len(dataset)} samples, chunk_size={args.chunk_size}")
     print(f"  state_dim={states.shape[1]}, action_dim={actions.shape[1]}")
 
