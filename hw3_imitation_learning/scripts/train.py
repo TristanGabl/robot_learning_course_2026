@@ -165,8 +165,8 @@ def main() -> None:
     permutations = np.array([[0, 1, 2], [0, 2, 1], [1, 0, 2], [1, 2, 0], [2, 0, 1], [2, 1, 0]])
     coordinate_indices = np.array([[4,5], [6,7], [8,9]]) # has to be: red | green | blue : on script/train call we need those correct indices!
     one_hot_color_indices = np.array([10, 11, 12])
-    permutations_states = np.repeat(states, len(permutations), axis=0)
-    permutations_actions = np.repeat(actions, len(permutations), axis=0)
+    permutations_states = np.tile(states, (len(permutations), 1))
+    permutations_actions = np.tile(actions, (len(permutations), 1))
     permutations_ep_end = np.concatenate([ep_ends] * 6)
 
 
@@ -175,11 +175,11 @@ def main() -> None:
         for j in range(permutations.shape[0]):
             order = permutations[j]
             perm_offset = j * states.shape[0]
+            perm_offset_end = (j + 1) * states.shape[0]
             permutations_ep_end[j*len(ep_ends):] += states.shape[0]
 
-            for i in range(ep_ends.size):
-                permutations_states[perm_offset:perm_offset+ep_ends[i], [*coordinate_indices[0], *coordinate_indices[1], *coordinate_indices[2], *one_hot_color_indices]] = \
-                    permutations_states[perm_offset:perm_offset+ep_ends[i], [*coordinate_indices[order[0]], *coordinate_indices[order[1]], *coordinate_indices[order[2]], one_hot_color_indices[order[0]], one_hot_color_indices[order[1]], one_hot_color_indices[order[2]]]]
+            permutations_states[perm_offset:perm_offset_end, [*coordinate_indices[0], *coordinate_indices[1], *coordinate_indices[2], *one_hot_color_indices]] = \
+                permutations_states[perm_offset:perm_offset_end, [*coordinate_indices[order[0]], *coordinate_indices[order[1]], *coordinate_indices[order[2]], one_hot_color_indices[order[0]], one_hot_color_indices[order[1]], one_hot_color_indices[order[2]]]]
                 
         permutations_ep_end -= states.shape[0]
         ep_ends = permutations_ep_end
