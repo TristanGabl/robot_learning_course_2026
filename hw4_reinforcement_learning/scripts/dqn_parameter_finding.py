@@ -54,7 +54,7 @@ if __name__ == "__main__":
     args_list = [(i, lr, epsilon, target_update, hidden_dim)
                  for i, (lr, epsilon, target_update, hidden_dim) in enumerate(param_combinations)]
 
-    n_workers = min(cpu_count(), len(param_combinations), 8)
+    n_workers = min(cpu_count(), len(param_combinations))
     print(f"Running with {n_workers} processes...")
 
     with Pool(processes=n_workers) as pool:
