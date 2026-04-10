@@ -15,7 +15,7 @@ sys.path.append(str(ROOT_DIR))
 
 from envs.cartpole_wrapper import CartPoleWrapper
 from exercises.ex2_dqn import ReplayBuffer, DQN
-from exercises.ex2_dqn_config import DQN_PARAMETERS
+# from exercises.ex2_dqn_config import DQN_PARAMETERS
 
 
 def train_off_policy_agent(env, agent, num_episodes, replay_buffer,
@@ -62,7 +62,7 @@ def train_off_policy_agent(env, agent, num_episodes, replay_buffer,
     return return_list
 
 
-def main():
+def main(DQN_PARAMETERS):
     # Hyperparameters
     lr = DQN_PARAMETERS["lr"]
     epsilon = DQN_PARAMETERS["epsilon"]
@@ -118,30 +118,31 @@ def main():
     env.close()
 
     # Logging
-    log_dir = ROOT_DIR / "logs" / "dqn"
-    model_dir = log_dir / "models"
-    result_dir = log_dir / "results"
+    # log_dir = ROOT_DIR / "logs" / "dqn"
+    # model_dir = log_dir / "models"
+    # result_dir = log_dir / "results"
 
-    model_dir.mkdir(parents=True, exist_ok=True)
-    result_dir.mkdir(parents=True, exist_ok=True)
+    # model_dir.mkdir(parents=True, exist_ok=True)
+    # result_dir.mkdir(parents=True, exist_ok=True)
 
     # Save model
-    model_path = model_dir / "dqn_cartpole.pth"
-    agent.save(model_path)
-    print(f"Model saved to: {model_path}")
+    # model_path = model_dir / "dqn_cartpole.pth"
+    # agent.save(model_path)
+    # print(f"Model saved to: {model_path}")
 
     # Plot raw training curve
-    episodes_list = list(range(len(return_list)))
-    plt.figure()
-    plt.plot(episodes_list, return_list)
-    plt.xlabel("Episodes")
-    plt.ylabel("Returns")
-    plt.title("DQN on CartPole-v1")
+    # episodes_list = list(range(len(return_list)))
+    # plt.figure()
+    # plt.plot(episodes_list, return_list)
+    # plt.xlabel("Episodes")
+    # plt.ylabel("Returns")
+    # plt.title("DQN on CartPole-v1")
 
-    train_curve_path = result_dir / "dqn_training_curve.png"
-    plt.savefig(train_curve_path, bbox_inches="tight")
-    plt.close()
-    print(f"Training curve saved to: {train_curve_path}")
+    # train_curve_path = result_dir / "dqn_training_curve.png"
+    # plt.savefig(train_curve_path, bbox_inches="tight")
+    # plt.close()
+    # print(f"Training curve saved to: {train_curve_path}")
+    return agent
 
 
 if __name__ == "__main__":

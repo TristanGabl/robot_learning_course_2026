@@ -16,7 +16,7 @@ DQN_PARAMETERS = {
     "lr": 2e-4,            # TODO
     "epsilon": 0.35,       # TODO
     "target_update": 100,   # TODO
-    "hidden_dim": 128,     # TODO
+    "hidden_dim": 96,     # TODO
     
     # Fixed parameters
     "gamma": 0.99,

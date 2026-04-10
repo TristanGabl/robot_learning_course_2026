@@ -73,7 +73,7 @@ def summarize_metrics(returns, lengths, success_threshold):
     return metrics
 
 
-def main():
+def main(agent):
     parser = argparse.ArgumentParser(
         description="Evaluate or play a trained DQN policy on CartPole-v1."
     )
@@ -111,7 +111,7 @@ def main():
         raise ValueError("--play and --record_video cannot be used at the same time.")
 
     # Hyperparameters
-    hidden_dim = DQN_PARAMETERS["hidden_dim"]
+    # hidden_dim = DQN_PARAMETERS["hidden_dim"]
     seed = DQN_PARAMETERS["seed"]
 
     random.seed(seed)
@@ -138,35 +138,35 @@ def main():
     env = CartPoleWrapper(seed=seed, render_mode=render_mode)
 
     # Video recording
-    if args.record_video:
-        video_dir = ROOT_DIR / "logs" / "dqn" / "videos"
-        video_dir.mkdir(parents=True, exist_ok=True)
+    # if args.record_video:
+    #     video_dir = ROOT_DIR / "logs" / "dqn" / "videos"
+    #     video_dir.mkdir(parents=True, exist_ok=True)
 
-        env.env = gym.wrappers.RecordVideo(
-            env.env,
-            video_folder=str(video_dir),
-            episode_trigger=lambda episode_id: episode_id == 0,
-            name_prefix="dqn_cartpole_eval",
-        )
-        print(f"Video will be saved to: {video_dir}")
+    #     env.env = gym.wrappers.RecordVideo(
+    #         env.env,
+    #         video_folder=str(video_dir),
+    #         episode_trigger=lambda episode_id: episode_id == 0,
+    #         name_prefix="dqn_cartpole_eval",
+    #     )
+    #     print(f"Video will be saved to: {video_dir}")
 
-    if args.play:
-        print("Play mode enabled: opening GUI window...")
+    # if args.play:
+    #     print("Play mode enabled: opening GUI window...")
 
     # Agent
-    agent = DQN(
-        state_dim=env.state_dim,
-        hidden_dim=hidden_dim,
-        action_dim=env.action_dim,
-        learning_rate=1e-3,
-        gamma=0.99,
-        epsilon=0.0,
-        target_update=100,
-        device=device,
-    )
+    # agent = DQN(
+    #     state_dim=env.state_dim,
+    #     hidden_dim=hidden_dim,
+    #     action_dim=env.action_dim,
+    #     learning_rate=1e-3,
+    #     gamma=0.99,
+    #     epsilon=0.0,
+    #     target_update=100,
+    #     device=device,
+    # )
 
-    agent.load(str(model_path))
-    print(f"Loaded checkpoint from: {model_path}")
+    # agent.load(str(model_path))
+    # print(f"Loaded checkpoint from: {model_path}")
 
     # Evaluation
     returns, lengths = evaluate_policy(
@@ -194,6 +194,8 @@ def main():
     print(f"Std length         : {metrics['std_length']:.2f}")
     print(f"Success threshold  : {metrics['success_threshold']:.1f}")
     print(f"Success rate       : {metrics['success_rate'] * 100:.1f}%")
+
+    return metrics['success_rate']
 
 
 if __name__ == "__main__":
