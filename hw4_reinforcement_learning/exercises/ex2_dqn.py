@@ -38,7 +38,7 @@ class ReplayBuffer:
             done (bool): whether the episode terminates after this transition
         """
         # TODO: Append the transition to the replay buffer.                  
-        raise NotImplementedError
+        self.buffer.append([state, action, reward, next_state, done])
 
     def sample(self, batch_size):
         """
@@ -95,6 +95,7 @@ class QNet(torch.nn.Module):
         super(QNet, self).__init__()
         self.fc1 = torch.nn.Linear(state_dim, hidden_dim)
         self.fc2 = torch.nn.Linear(hidden_dim, action_dim)
+        self.relu = torch.nn.ReLU()
 
     def forward(self, x):
         """
@@ -108,7 +109,7 @@ class QNet(torch.nn.Module):
         """
         # TODO: Implement the forward pass of the network.         
         # Use ReLU after the first linear layer.                   
-        raise NotImplementedError
+        return self.fc2(self.relu(self.fc1(x)))
 
 
 class DQN:
@@ -169,7 +170,10 @@ class DQN:
         # - For exploitation, convert the state to a torch tensor
         #   of shape (1, state_dim), move it to `self.device`,
         #   and choose the action with the largest Q-value.
-        raise NotImplementedError
+        if np.random.random() < self.epsilon:
+            return np.random.choice([0,1])
+        else:
+            return self.predict_action(torch.tensor(state).to(self.device))        
 
     def predict_action(self, state):
         """
@@ -224,7 +228,7 @@ class DQN:
             # Hint:
             # - Use the target network for next-state values.
             # - DQN target: r + gamma * max_a' Q_target(s', a') * (1 - done)
-            raise NotImplementedError
+            q_targets = rewards + self.gamma * self.target_q_net(next_states) * (1 - dones)
 
         # Compute DQN loss
         dqn_loss = torch.mean(F.mse_loss(q_values, q_targets))
@@ -259,3 +263,10 @@ class DQN:
         checkpoint = torch.load(path, map_location=self.device)
         self.q_net.load_state_dict(checkpoint["q_net"])
         self.target_q_net.load_state_dict(checkpoint["target_q_net"])
+
+if __name__ == "__main__":
+    replaybuffer = ReplayBuffer(3)
+    replaybuffer.add(1,2,3,4,5)
+    replaybuffer.add(6,7,8,9,10)
+    replaybuffer.add(11,12,13,14,15)
+    print(replaybuffer.sample(2))
