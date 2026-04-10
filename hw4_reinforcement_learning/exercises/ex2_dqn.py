@@ -228,7 +228,8 @@ class DQN:
             # Hint:
             # - Use the target network for next-state values.
             # - DQN target: r + gamma * max_a' Q_target(s', a') * (1 - done)
-            q_targets = rewards + self.gamma * self.target_q_net(next_states) * (1 - dones)
+            action = self.target_q_net(next_states)
+            q_targets = q_targets = rewards + self.gamma * action.max(1)[0].view(-1, 1) * (1 - dones)
 
         # Compute DQN loss
         dqn_loss = torch.mean(F.mse_loss(q_values, q_targets))
