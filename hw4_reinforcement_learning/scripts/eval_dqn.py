@@ -105,7 +105,7 @@ def main(agent):
         action="store_true",
         help="Open a GUI window and play the learned policy.",
     )
-    args = parser.parse_args()
+    args = parser.parse_args([])
 
     if args.play and args.record_video:
         raise ValueError("--play and --record_video cannot be used at the same time.")

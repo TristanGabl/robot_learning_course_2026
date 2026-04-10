@@ -1,7 +1,9 @@
+import torch
 import numpy as np
 import sys
 from pathlib import Path
 from multiprocessing import Pool, cpu_count
+
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
 sys.path.append(str(ROOT_DIR))
@@ -36,6 +38,7 @@ print(f"Total combinations: {len(param_combinations)}")
 
 
 def run(args):
+    torch.set_num_threads(1)
     i, lr, epsilon, target_update, hidden_dim = args
     print(f"Combination {i+1}/{len(param_combinations)}: lr={lr:.6f}, epsilon={epsilon:.4f}, target_update={int(target_update)}, hidden_dim={int(hidden_dim)}")
     DQN_PARAMETERS_copy = DQN_PARAMETERS.copy()
@@ -51,7 +54,7 @@ if __name__ == "__main__":
     args_list = [(i, lr, epsilon, target_update, hidden_dim)
                  for i, (lr, epsilon, target_update, hidden_dim) in enumerate(param_combinations)]
 
-    n_workers = min(cpu_count(), len(param_combinations))
+    n_workers = min(cpu_count(), len(param_combinations), 8)
     print(f"Running with {n_workers} processes...")
 
     with Pool(processes=n_workers) as pool:
