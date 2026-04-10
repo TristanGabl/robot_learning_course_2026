@@ -26,7 +26,7 @@ def train_off_policy_agent(env, agent, num_episodes, replay_buffer,
     return_list = []
 
     for i in range(10):
-        print(f"Iteration {i}")
+        # print(f"Iteration {i}")
 
         for i_episode in range(int(num_episodes / 10)):
             episode_return = 0.0
@@ -57,7 +57,7 @@ def train_off_policy_agent(env, agent, num_episodes, replay_buffer,
             if (i_episode + 1) % 10 == 0:
                 episode_id = int(num_episodes / 10) * i + i_episode + 1
                 mean_return = np.mean(return_list[-10:])
-                print(f"Episode {episode_id}, Average Return: {mean_return:.3f}")
+                # print(f"Episode {episode_id}, Average Return: {mean_return:.3f}")
 
     return return_list
 
@@ -82,10 +82,11 @@ def main(DQN_PARAMETERS):
     torch.manual_seed(seed)
 
     # Device
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print(f"Using device: {device}")
-    if device.type == "cuda":
-        print(f"GPU name: {torch.cuda.get_device_name(0)}")
+    # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = "cpu"
+    # print(f"Using device: {device}")
+    # if device.type == "cuda":
+    #     print(f"GPU name: {torch.cuda.get_device_name(0)}")
 
     # Environment
     env = CartPoleWrapper(seed=seed)
