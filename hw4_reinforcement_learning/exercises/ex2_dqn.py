@@ -171,7 +171,7 @@ class DQN:
         #   of shape (1, state_dim), move it to `self.device`,
         #   and choose the action with the largest Q-value.
         if np.random.random() < self.epsilon:
-            return np.random.choice([0,1])
+            return int(np.random.choice([0,1]))
         else:
             return self.predict_action(torch.tensor(state).to(self.device))        
 
